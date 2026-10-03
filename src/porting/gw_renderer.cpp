@@ -64,10 +64,11 @@ void gw_renderer::update_pad(const odroid_gamepad_state_t *pad)
 
 word gw_renderer::map_color(word gb_col)
 {
-   return ((gb_col&0x001f) << 11) |
-      ((gb_col&0x03e0) <<  1) |
-      ((gb_col&0x0200) >>  4) |
-      ((gb_col&0x7c00) >> 10);
+   /* BGR555 → RGB565 (duplicate G MSB into the 6th green bit). */
+   return ((gb_col&0x001F)<<11)+
+          ((gb_col&0x03E0)<<1)+
+          ((gb_col&0x0200)>>4)+
+          ((gb_col&0x7C00)>>10);
 }
 
 void gw_renderer::refresh() {

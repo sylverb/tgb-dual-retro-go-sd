@@ -685,7 +685,11 @@ static bool palette_update_cb(odroid_dialog_choice_t *option, odroid_dialog_even
         }
     }
 
-    sprintf(option->value, "%d/%d", index_palette + 1, max + 1);
+    /* Match old gnuboy UI: index 0 shows "GBC", then 1/N .. N/N. */
+    if (index_palette == 0)
+        strcpy(option->value, "GBC");
+    else
+        sprintf(option->value, "%d/%d", index_palette, max);
     return event == ODROID_DIALOG_ENTER;
 }
 
