@@ -235,16 +235,19 @@ static void *Screenshot()
 }
 
 static void SaveSram() {
-    if (g_gb->get_rom()->has_battery()) {
-        char *sram_path = odroid_system_get_path(ODROID_PATH_SAVE_SRAM, ACTIVE_FILE->path);
-        const int sram_size = g_gb->get_rom()->get_sram_size();
-        FILE *sram_file = fopen(sram_path, "wb");
-        if (sram_file != NULL) {
-            fwrite(g_gb->get_rom()->get_sram(), sram_size, 1, sram_file);
-            fclose(sram_file);
-        }
-        free(sram_path);
+    if (!g_gb || !g_gb->get_rom() || !g_gb->get_rom()->has_battery())
+        return;
+    if (!ACTIVE_FILE || !ACTIVE_FILE->path)
+        return;
+
+    char *sram_path = odroid_system_get_path(ODROID_PATH_SAVE_SRAM, ACTIVE_FILE->path);
+    const int sram_size = g_gb->get_rom()->get_sram_size();
+    FILE *sram_file = fopen(sram_path, "wb");
+    if (sram_file != NULL) {
+        fwrite(g_gb->get_rom()->get_sram(), sram_size, 1, sram_file);
+        fclose(sram_file);
     }
+    free(sram_path);
 }
 
 void gb_pcm_submit(int16_t *stream, int samples) {
@@ -902,7 +905,7 @@ extern "C" void app_main_gb_tgbdual(uint8_t load_state, uint8_t start_paused, in
     printf("is_gbcolor: %d ram_size: %d\n", is_gbcolor, ram_size);
     printf("free mem: %d reserved_size: %d\n", heap_free_mem(), (int)reserved_size);
     if (size > (heap_free_mem() - reserved_size)) {
-        data = (byte *)odroid_overlay_cache_file_in_flash(ACTIVE_FILE->path, &size, false);
+        data = (byte *)odroid_overlay_cache_file_in_flash_cancellable(ACTIVE_FILE->path, &size, false);
     } else {
         data = (byte *)heap_alloc_mem(size);
         if (data != NULL) {
@@ -993,6 +996,9 @@ extern "C" void app_main_gb_tgbdual(uint8_t load_state, uint8_t start_paused, in
         odroid_input_read_gamepad(&joystick);
         common_emu_input_loop(&joystick, options, &gb_process_blit);
         common_emu_input_loop_handle_turbo(&joystick);
+        /* check_pad() is polled every scanline — feed it this frame's
+         * post-turbo state instead of re-reading the raw buttons. */
+        render->update_pad(&joystick);
 
         for (int line = 0;line < 154; line++) {
             g_gb->run();

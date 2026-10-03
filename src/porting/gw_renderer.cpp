@@ -53,6 +53,13 @@ gw_renderer::gw_renderer(int which)
    fixed_time = 0;
    cur_time = 0;
    cal_valid = false;
+   memset(&pad_state, 0, sizeof(pad_state));
+}
+
+void gw_renderer::update_pad(const odroid_gamepad_state_t *pad)
+{
+   if (pad)
+      pad_state = *pad;
 }
 
 word gw_renderer::map_color(word gb_col)
@@ -85,10 +92,7 @@ void gw_renderer::refresh() {
 
 int gw_renderer::check_pad()
 {
-   odroid_gamepad_state_t joystick;
-   odroid_input_read_gamepad(&joystick);
-
-   if (joystick.values[ODROID_INPUT_VOLUME]) {
+   if (pad_state.values[ODROID_INPUT_VOLUME]) {
       // if Pause button is pressed, ignore
       // pressed keys as it is used for some
       // shortcuts (contrasts, volume, ...)
@@ -96,38 +100,38 @@ int gw_renderer::check_pad()
    }
 
    int joystick_state = 0;
-   if (joystick.values[ODROID_INPUT_LEFT]) {
+   if (pad_state.values[ODROID_INPUT_LEFT]) {
       joystick_state |= 1<<6;
    }
-   if (joystick.values[ODROID_INPUT_RIGHT]) {
+   if (pad_state.values[ODROID_INPUT_RIGHT]) {
       joystick_state |= 1<<7;
    }
-   if (joystick.values[ODROID_INPUT_UP]) {
+   if (pad_state.values[ODROID_INPUT_UP]) {
       joystick_state |= 1<<5;
    }
-   if (joystick.values[ODROID_INPUT_DOWN]) {
+   if (pad_state.values[ODROID_INPUT_DOWN]) {
       joystick_state |= 1<<4;
    }
-   if (joystick.values[ODROID_INPUT_A]) {
+   if (pad_state.values[ODROID_INPUT_A]) {
       joystick_state |= 1<<0;
    }
-   if (joystick.values[ODROID_INPUT_B]) {
+   if (pad_state.values[ODROID_INPUT_B]) {
       joystick_state |= 1<<1;
    }
    // Game button on G&W
-   if (joystick.values[ODROID_INPUT_START]) {
+   if (pad_state.values[ODROID_INPUT_START]) {
       joystick_state |= 1<<3;
    }
    // Time button on G&W
-   if (joystick.values[ODROID_INPUT_SELECT]) {
+   if (pad_state.values[ODROID_INPUT_SELECT]) {
       joystick_state |= 1<<2;
    }
    // Start button on Zelda G&W
-   if (joystick.values[ODROID_INPUT_X]) {
+   if (pad_state.values[ODROID_INPUT_X]) {
       joystick_state |= 1<<3;
    }
    // Select button on Zelda G&W
-   if (joystick.values[ODROID_INPUT_Y]) {
+   if (pad_state.values[ODROID_INPUT_Y]) {
       joystick_state |= 1<<2;
    }
 

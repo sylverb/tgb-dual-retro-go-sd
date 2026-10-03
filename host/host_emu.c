@@ -630,6 +630,13 @@ uint8_t *odroid_overlay_cache_file_in_flash(const char *file_path, uint32_t *fil
     return NULL;
 }
 
+uint8_t *odroid_overlay_cache_file_in_flash_cancellable(const char *file_path,
+                                                        uint32_t *file_size_p,
+                                                        bool byte_swap)
+{
+    return odroid_overlay_cache_file_in_flash(file_path, file_size_p, byte_swap);
+}
+
 size_t odroid_overlay_cache_file_in_ram(const char *file_path, uint8_t *dest_address)
 {
     FILE *f;

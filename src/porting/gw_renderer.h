@@ -19,6 +19,10 @@
 
 #include "gb_core/renderer.h"
 
+extern "C" {
+#include "odroid_input.h"
+}
+
 class gw_renderer : public renderer
 {
 public:
@@ -38,6 +42,10 @@ public:
 	virtual void get_calendar_time(byte *year,byte *month,byte *day,
 	                               byte *hour,byte *minute,byte *second);
 
+	/* Latch post-turbo pad once per frame; check_pad() is polled every
+	 * scanline and must not re-read/re-turbo the hardware buttons. */
+	void update_pad(const odroid_gamepad_state_t *pad);
+
 	time_t fixed_time;
 private:
 	int cur_time;
@@ -45,4 +53,5 @@ private:
 	bool rgb565;
 	bool cal_valid;
 	byte cal_year, cal_month, cal_day, cal_hour, cal_minute, cal_second;
+	odroid_gamepad_state_t pad_state;
 };

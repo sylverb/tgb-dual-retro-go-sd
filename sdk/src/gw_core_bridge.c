@@ -384,12 +384,14 @@ int core_vsnprintf(char *s, size_t n, const char *fmt, va_list ap)
     return gw_firmware_abi()->vsnprintf(s, n, fmt, ap);
 }
 
-/* Minimal LCG — FCEU_MemoryRand / NSF visuals only need non-crypto entropy. */
+/* Minimal LCG. Must span 0..RAND_MAX (newlib: 0x7fffffff). Returning only
+ * 15 bits silently kills callers that do rand()/RAND_MAX (Celeste INST_NOISE
+ * dash whoosh, etc.). */
 static unsigned long core_rand_state = 1;
 int core_rand(void)
 {
     core_rand_state = core_rand_state * 1103515245UL + 12345UL;
-    return (int)((core_rand_state >> 16) & 0x7fff);
+    return (int)((core_rand_state >> 1) & 0x7fffffffUL);
 }
 
 /*
@@ -1372,6 +1374,13 @@ void core_store_data_abort(void *st)
 {
     gw_firmware_abi()->store_data_abort(st);
 }
+uint32_t core_flash_cache_usable_size(void)
+{
+    const gw_firmware_abi_t *abi = gw_firmware_abi();
+    if (!abi->flash_cache_usable_size)
+        return 0;
+    return abi->flash_cache_usable_size();
+}
 int core_lcd_get_mode(void)
 {
     return gw_firmware_abi()->lcd_get_mode();
@@ -1379,6 +1388,40 @@ int core_lcd_get_mode(void)
 void core_odroid_overlay_draw_progress_bar(const char *header, uint8_t progress)
 {
     gw_firmware_abi()->odroid_overlay_draw_progress_bar(header, progress);
+}
+bool core_odroid_overlay_progress_poll_cancel(void)
+{
+    const gw_firmware_abi_t *abi = gw_firmware_abi();
+    if (!abi->odroid_overlay_progress_poll_cancel)
+        return false;
+    return abi->odroid_overlay_progress_poll_cancel();
+}
+bool core_odroid_overlay_draw_progress_bar_cancellable(const char *header, uint8_t progress)
+{
+    const gw_firmware_abi_t *abi = gw_firmware_abi();
+    if (!abi->odroid_overlay_draw_progress_bar_cancellable)
+        return true; /* old firmware: keep going */
+    return abi->odroid_overlay_draw_progress_bar_cancellable(header, progress);
+}
+uint8_t *core_odroid_overlay_cache_file_in_flash_cancellable(const char *file_path,
+                                                             uint32_t *file_size_p,
+                                                             bool byte_swap)
+{
+    const gw_firmware_abi_t *abi = gw_firmware_abi();
+    if (!abi->odroid_overlay_cache_file_in_flash_cancellable)
+        return abi->odroid_overlay_cache_file_in_flash(file_path, file_size_p, byte_swap);
+    return abi->odroid_overlay_cache_file_in_flash_cancellable(file_path, file_size_p, byte_swap);
+}
+uint8_t *core_odroid_overlay_cache_file_in_flash_relocate_cancellable(
+    const char *file_path, uint32_t *file_size_p, bool byte_swap,
+    gw_flash_relocate_cb_t relocate_cb)
+{
+    const gw_firmware_abi_t *abi = gw_firmware_abi();
+    if (!abi->odroid_overlay_cache_file_in_flash_relocate_cancellable)
+        return abi->odroid_overlay_cache_file_in_flash_relocate(
+            file_path, file_size_p, byte_swap, relocate_cb);
+    return abi->odroid_overlay_cache_file_in_flash_relocate_cancellable(
+        file_path, file_size_p, byte_swap, relocate_cb);
 }
 bool core_rg_storage_mkdir(const char *dir)
 {
