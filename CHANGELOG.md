@@ -1,20 +1,19 @@
 # Changelog
 
-## [v0.0.4]
+## [v0.0.5]
 
 ### Added
 
-- GB mode: palette **GBC** (index 0) — per-game colorization from the GBC
-  boot ROM tables
+- Nothing.
 
 ### Changed
 
-- SDK update
-- Allow to cancel game caching
+- Default palette is not GBC palette anymore.
 
 ### Fixed
 
-- Autofire now working as expected
+- SGB: colorize sprites from the ATTR map (like real hardware / mGBA), not
+  a fixed palette 1 — fixes inverted/wrong OBJ colors in Donkey Kong ’94
 
 ### Install
 
