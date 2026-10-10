@@ -685,11 +685,11 @@ static bool palette_update_cb(odroid_dialog_choice_t *option, odroid_dialog_even
         }
     }
 
-    /* Match old gnuboy UI: index 0 shows "GBC", then 1/N .. N/N. */
-    if (index_palette == 0)
+    /* Last index is GBC colorization; 0..max-1 are fixed palettes. */
+    if (index_palette == max)
         strcpy(option->value, "GBC");
     else
-        sprintf(option->value, "%d/%d", index_palette, max);
+        sprintf(option->value, "%d/%d", index_palette + 1, max);
     return event == ODROID_DIALOG_ENTER;
 }
 
